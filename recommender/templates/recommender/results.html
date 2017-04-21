@@ -1,0 +1,37 @@
+<h1>Results</h1>
+<p>{{ food_type }}</p>
+<form action="{% url 'recommender:getRestaurants' %}" method="post">
+  {% csrf_token %}
+  <input type="hidden" value="{{ food_type }}" name="food_type">
+  <input type="hidden" name="lat">
+  <input type="hidden" name="lon">
+  <input type="submit" value="Get Restaurants" />
+  <p id="demo"></p>
+</form>
+<form action="{% url 'recommender:getRestaurants' %}" method="post">
+  {% csrf_token %}
+  <input type="hidden" value="{{ food_type }}" name="food_type">
+  <input type="hidden" name="lat">
+  <input type="hidden" name="lon">
+  <input type="submit" value="Get Restaurants" />
+</form>
+<a href="http://i.imgur.com/FvbbHzd.jpg"><button>I don't want {{ food_type }}</button></a>
+
+<script>
+  var x = document.getElementById("demo");
+
+  function getLocation() {
+      if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(setPosition);
+      } else {
+          x.innerHTML = "Geolocation is not supported by this browser.";
+      }
+  }
+
+  function setPosition(position) {
+    document.querySelector("input[name=lat]").value = position.coords.latitude;
+    document.querySelector("input[name=lon]").value = position.coords.longitude;
+  }
+
+  getLocation();
+</script>

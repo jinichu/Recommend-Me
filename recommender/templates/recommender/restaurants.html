@@ -1,0 +1,104 @@
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Simple markers</title>
+    <style>
+      #map {
+        height: 80%;
+        margin: 0 auto;
+      }
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    {% if restaurants %}
+    <h1>Restaurants</h1>
+    <div id="map"></div>
+    <input type="hidden" name="latitude" value="{{ latitude }}">
+    <input type="hidden" name="longitude" value="{{ longitude }}">
+    {% else %}
+      <p>No restaurants found :(</p>
+    {% endif %}
+  </body>
+  <script>
+    var currentInfoWindow = null;
+    var bounds;
+
+    function initMap() {
+      var myLocation = {
+        lat: parseFloat(document.querySelector("input[name=latitude]").value),
+        lng: parseFloat(document.querySelector("input[name=longitude]").value)
+       };
+
+      var map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 20,
+        center: myLocation
+      });
+
+      var marker = new google.maps.Marker({
+        position: myLocation,
+        map: map,
+        title: 'Your Location'
+      });
+      bounds = new google.maps.LatLngBounds();
+      bounds.extend(myLocation);
+      marker.setIcon('http://maps.google.com/mapfiles/ms/icons/green-dot.png');
+      generateMarkers(map);
+      map.fitBounds(bounds);
+    }
+
+    function generateMarkers(map) {
+      var restaurants = [{% for restaurant in restaurants %}
+        {
+          "name": "{{ restaurant.name }}",
+          "address": "{{ restaurant.address }}",
+          "rating": "{{ restaurant.rating }}",
+          "phone": "{{ restaurant.phone }}",
+          "latitude": "{{ restaurant.latitude }}",
+          "longitude": "{{ restaurant.longitude }}",
+        },
+        {% endfor %}
+      ]
+      restaurants.forEach(function(restaurant) {
+
+        var location = {
+          lat: parseFloat(restaurant.latitude),
+          lng: parseFloat(restaurant.longitude)
+        }
+
+        var marker = new google.maps.Marker({
+          position: location,
+          map: map,
+          title: restaurant.name
+        });
+        // Add this marker to bounding box of map zoom
+        bounds.extend(location);
+        var contentString = '<div>' + '<h2>' + restaurant.name + '</h2>' +
+          '<p>' + '<b>' + "Address: " + '</b>' + restaurant.address + '</p>' +
+          '<p>' + '<b>' + "Phone: " + '</b>' + restaurant.phone + '</p>' +
+          '<p>' + '<b>' + "Rating: " + '</b>' + restaurant.rating + '</p>' + '</div>'
+
+        var infowindow = new google.maps.InfoWindow({
+          content: contentString
+        });
+
+        google.maps.event.addListener(marker, 'click', function() {
+          if (currentInfoWindow != null) {
+              currentInfoWindow.close();
+          }
+          infowindow.open(map, marker);
+          currentInfoWindow = infowindow;
+        });
+        marker.setIcon('http://maps.google.com/mapfiles/ms/icons/red-dot.png');
+      });
+    }
+  </script>
+  <script async defer
+     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCWHr7fur2rCJhY2PjH9EvwGsgYzj-f8rU&callback=initMap">
+  </script>
+</html>
