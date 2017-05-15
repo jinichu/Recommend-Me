@@ -8,13 +8,16 @@ from django.urls import reverse
 from .models import Person, FoodType
 from .forms import RecommenderForm
 import random
+import json
 
 def index(request):
     return render(request, 'recommender/index.html', {})
 
 def results(request):
     food_type = FoodType(type=request.session['type'][0])
-    food_type_array = request.session['type']
+    food_type_array = []
+    for item in request.session['type']:
+        food_type_array.append(FoodType(type=item).get_type_display())
     content = {
         'food_type': food_type.get_type_display(),
         'food_type_array': food_type_array
@@ -29,7 +32,6 @@ def createPerson(request):
             person = Person(primary_mood=data['primary_mood'], secondary_mood=data['secondary_mood'])
             food_type = getFoodType(person)
             request.session['type'] = food_type
-            print food_type
             return HttpResponseRedirect('/recommender/results')
     else:
         form = RecommenderForm()
@@ -66,3 +68,18 @@ def getOverlapTypes(a, b):
         overlap.extend(b)
     random.shuffle(overlap)
     return overlap
+
+def newSuggestion(request):
+    if request.method == 'POST':
+        food_type_array = request.POST.getlist('food_type_array')
+        if len(food_type_array) > 1:
+            food_type_array.remove(request.POST['food_type'])
+            food_type = FoodType(type=food_type_array[0])
+        else:
+            food_type = FoodType(type=random.randint(1,24))
+
+        content = {
+            'food_type': food_type.get_type_display(),
+            'food_type_array': food_type_array
+        }
+        return render(request, 'recommender/newresults.html', content)

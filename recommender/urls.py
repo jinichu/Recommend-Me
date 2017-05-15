@@ -9,4 +9,5 @@ urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^results/$', views.results, name='results'),
     url(r'^restaurants/$', restaurants.getRestaurants, name='getRestaurants'),
+    url(r'^newresults/$', views.newSuggestion, name='newSuggestion'),
 ]
