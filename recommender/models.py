@@ -2,34 +2,6 @@
 from __future__ import unicode_literals
 from django.db import models
 
-class Person(models.Model):
-    P_MOODS = (
-        (1, 'Happy'),
-        (2, 'Excited'),
-        (3, 'Content'),
-        (4, 'Angry'),
-        (5, 'Worried'),
-        (6, 'Frustrated'),
-        (7, 'Bored'),
-        (8, 'Lonely'),
-        (9, 'Sad'),
-        (10, 'Indifferent'),
-    )
-    S_MOODS = (
-        (1, 'Energetic'),
-        (2, 'Motivated'),
-        (3, 'Refreshed'),
-        (4, 'Neutral'),
-        (5, 'Relaxed'),
-        (6, 'Lazy'),
-        (7, 'Tired'),
-        (8, 'Exhausted'),
-        (9, 'Stressed'),
-        (10, 'Anxious'),
-    )
-    primary_mood = models.IntegerField(choices=P_MOODS, default=1)
-    secondary_mood = models.IntegerField(choices=S_MOODS, default=1)
-
 class FoodType(models.Model):
     TYPES = (
         (1, 'Chinese'),
@@ -47,16 +19,35 @@ class FoodType(models.Model):
         (13, 'French'),
         (14, 'Greek'),
         (15, 'Mediterranean'),
-        (16, 'Cafe'),
-        (17, 'Diner'),
-        (18, 'Burgers'),
-        (19, 'Pizza'),
-        (20, 'Seafood'),
-        (21, 'Steakhouse'),
-        (22, 'Pubs'),
-        (23, 'Cocktail Bars'),
+        (16, 'American'),
+        (17, 'Cafe'),
+        (18, 'Diner'),
+        (19, 'Burgers'),
+        (20, 'Pizza'),
+        (21, 'Seafood'),
+        (22, 'Steakhouse'),
+        (23, 'Pubs'),
+        (24, 'Cocktail Bars'),
     )
     type = models.IntegerField(choices=TYPES, default=1)
+
+class Person(models.Model):
+    P_MOODS = (
+        (1, 'Happy'),
+        (2, 'Excited'),
+        (3, 'Angry'),
+        (4, 'Frustrated'),
+        (5, 'Worried'),
+        (6, 'Stressed'),
+        (7, 'Bored'),
+        (8, 'Neutral'),
+        (9, 'Sad'),
+        (10, 'Lazy'),
+        (11, 'Tired'),
+        (12, 'Relaxed'),
+    )
+    primary_mood = models.IntegerField(choices=P_MOODS, default=1)
+    food_type = models.ForeignKey(FoodType, default=1, on_delete=models.CASCADE)
 
 class Restaurant(models.Model):
     name = models.CharField(max_length=200)

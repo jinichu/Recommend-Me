@@ -3,7 +3,7 @@ from urllib import quote
 from urllib import urlencode
 from yelp.client import Client
 from yelp.oauth1_authenticator import Oauth1Authenticator
-from .models import Restaurant
+from .models import Restaurant, Person, FoodType
 import json
 import requests
 
@@ -17,8 +17,13 @@ CLIENT_SECRET = 'jDTaXpUA2y6uwnFl1YmSas49j1XRAzQjyHruplt4kLjf9q7RunlMeuUwgRug2xf
 
 def getRestaurants(request):
     if request.method == 'POST':
+        person = Person.objects.get(id=request.POST['person_id'])
+        food_type_obj = FoodType.objects.get_or_create(type=int(request.POST['food_type']))[0]
+        person.food_type = food_type_obj
+        person.save()
+        print person.food_type.get_type_display()
         bearer_token = obtain_bearer_token(HOST, TOKEN_PATH)
-        response = search(bearer_token, request.POST['food_type'], request.POST['lat'], request.POST['lon'])
+        response = search(bearer_token, food_type_obj.get_type_display(), request.POST['lat'], request.POST['lon'])
         businesses = response.get('businesses')
         restaurants = []
         print businesses[0]

@@ -1,8 +1,9 @@
 <h1>Results</h1>
-<p>{{ food_type }}</p>
+<p>{{ food_type.get_type_display }}</p>
 <form action="{% url 'recommender:getRestaurants' %}" method="post">
   {% csrf_token %}
-  <input type="hidden" value="{{ food_type }}" name="food_type">
+  <input type="hidden" value="{{ person_id }}" name="person_id">
+  <input type="hidden" value="{{ food_type.type }}" name="food_type">
   <input type="hidden" name="lat">
   <input type="hidden" name="lon">
   <input type="submit" value="Get Restaurants" />
@@ -10,11 +11,15 @@
 </form>
 <form action="{% url 'recommender:newSuggestion' %}" method="post">
   {% csrf_token %}
-  <input type="hidden" value="{{ food_type }}" name="food_type">
+  <input type="hidden" value="{{ person_id }}" name="person_id">
+  <input type="hidden" value="{{ food_type.type }}" name="food_type">
   {% for item in food_type_array %}
   <input type="hidden" value="{{ item }}" name="food_type_array">
   {% endfor %}
-  <input type="submit" value="I don't want {{ food_type }}" />
+  {% for item in rejected %}
+  <input type="hidden" value="{{ item }}" name="rejected">
+  {% endfor %}
+  <input type="submit" value="I don't want {{ food_type.get_type_display }}" />
 </form>
 
 <script>

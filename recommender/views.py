@@ -16,11 +16,14 @@ def index(request):
 def results(request):
     food_type = FoodType(type=request.session['type'][0])
     food_type_array = []
+    rejected = []
     for item in request.session['type']:
-        food_type_array.append(FoodType(type=item).get_type_display())
+        food_type_array.append(FoodType(type=item).type)
     content = {
-        'food_type': food_type.get_type_display(),
-        'food_type_array': food_type_array
+        'person_id': request.session['id'],
+        'food_type': food_type,
+        'food_type_array': food_type_array,
+        'rejected': rejected
     }
     return render(request, 'recommender/results.html', content)
 
@@ -29,57 +32,77 @@ def createPerson(request):
         form = RecommenderForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
-            person = Person(primary_mood=data['primary_mood'], secondary_mood=data['secondary_mood'])
+            food_type_obj = FoodType.objects.get_or_create(type=1)[0]
+            food_type_obj.save()
+            person = Person(primary_mood=data['primary_mood'], food_type=food_type_obj)
+            # Save person to database
+            person.save()
+            print person.id
+            print person.food_type.get_type_display()
             food_type = getFoodType(person)
             request.session['type'] = food_type
+            request.session['id'] = person.id
             return HttpResponseRedirect('/recommender/results')
     else:
         form = RecommenderForm()
     return render(request, 'recommender/index.html', {'form': form})
 
 def getFoodType(person):
-    p_mood = person.primary_mood
-    s_mood = person.secondary_mood
-    if p_mood == 1 or p_mood == 2 or p_mood == 3:
-        p_list = [1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 14, 15, 16, 20, 22]
-    elif p_mood == 4 or p_mood == 5 or p_mood == 6:
-        p_list = [1, 4, 5, 6, 7, 8, 9, 11, 13, 16, 17, 18, 19, 21, 23]
-    elif p_mood == 7 or p_mood == 8 or p_mood == 9:
-        p_list = [2, 3, 4, 6, 10, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23]
-    else:
-        p_list = range(1, 24)
+    mood = person.primary_mood
 
-    if s_mood == 1 or s_mood == 2 or s_mood == 3:
-        s_list = [1, 6, 9, 11, 17, 23]
-    elif s_mood == 4 or s_mood == 5 or s_mood == 6:
-        s_list = [2, 7, 13, 15, 16, 20]
-    elif s_mood == 7 or s_mood == 8:
-        s_list = [3, 4, 5, 8, 10, 14]
-    elif s_mood == 9 or s_mood == 10:
-        s_list = [12, 18, 19, 21, 22]
+    if mood == 1:
+        food_type = [3, 5, 7, 22]
+    elif mood == 2:
+        food_type = [2, 6, 11, 23]
+    elif mood == 3:
+        food_type = [1, 21, 22, 24]
+    elif mood == 4:
+        food_type = [2, 8, 12, 14]
+    elif mood == 5:
+        food_type = [7, 17, 18, 23]
+    elif mood == 6:
+        food_type = [1, 15, 19, 20]
+    elif mood == 7:
+        food_type = [3, 9, 10, 11]
+    elif mood == 8:
+        food_type = [5, 9, 10, 15]
+    elif mood == 9:
+        food_type = [13, 16, 20, 24]
+    elif mood == 10:
+        food_type = [4, 17, 18, 19]
+    elif mood == 11:
+        food_type = [4, 6, 12, 21]
+    elif mood == 12:
+        food_type = [8, 13, 14, 16]
 
-    food_type = getOverlapTypes(p_list, s_list)
+    random.shuffle(food_type)
     return food_type
-
-def getOverlapTypes(a, b):
-    overlap = list(set(a) & set(b))
-    if not overlap:
-        overlap.extend(a)
-        overlap.extend(b)
-    random.shuffle(overlap)
-    return overlap
 
 def newSuggestion(request):
     if request.method == 'POST':
+        type = int(request.POST['food_type'])
+        food_type = FoodType(type=type)
         food_type_array = request.POST.getlist('food_type_array')
+        rejected = request.POST.getlist('rejected')
         if len(food_type_array) > 1:
-            food_type_array.remove(request.POST['food_type'])
-            food_type = FoodType(type=food_type_array[0])
+            food_type_array.remove(str(food_type.type))
+            rejected.append(str(food_type.type))
+            food_type = FoodType(type=int(food_type_array[0]))
         else:
-            food_type = FoodType(type=random.randint(1,24))
+            rejected.append(str(food_type.type))
+            print rejected
+            if len(rejected) == 24:
+                rejected = []
+                food_type = FoodType(type=random.randint(1,24))
+            else:
+                food_type = FoodType(type=random.randint(1,24))
+                while str(food_type.type) in rejected:
+                    food_type = FoodType(type=random.randint(1,24))
 
         content = {
-            'food_type': food_type.get_type_display(),
-            'food_type_array': food_type_array
+            'person_id': request.POST['person_id'],
+            'food_type': food_type,
+            'food_type_array': food_type_array,
+            'rejected': rejected
         }
         return render(request, 'recommender/newresults.html', content)
